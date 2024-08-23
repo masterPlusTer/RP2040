@@ -3,6 +3,16 @@ import uos
 import gc
 import utime
 
+# Configurar el LED para parpadeo
+led = machine.Pin(25, machine.Pin.OUT)
+
+def blink_led(interval_ms, blink_count):
+    for _ in range(blink_count):
+        led.value(1)  # Encender LED
+        utime.sleep_ms(interval_ms)
+        led.value(0)  # Apagar LED
+        utime.sleep_ms(interval_ms)
+
 # Obtener información de la memoria
 def memory_info():
     return {
@@ -70,9 +80,11 @@ def filesystem_info():
     fs_info = uos.statvfs('/')
     total_size = fs_info[0] * fs_info[1]  # Tamaño total del sistema de archivos
     free_size = fs_info[0] * fs_info[3]   # Espacio libre en el sistema de archivos
+    used_size = total_size - free_size   # Espacio usado en el sistema de archivos
     return {
         'fs_total': total_size,
-        'fs_free': free_size
+        'fs_free': free_size,
+        'fs_used': used_size
     }
 
 # Obtener información del chip
@@ -101,6 +113,16 @@ def rtc_extended_info():
         'rtc_weekday': datetime[3],  # Día de la semana
         'rtc_day_of_year': day_of_year  # Día del año
     }
+
+# Listar todos los archivos en el directorio raíz y sus tamaños
+def list_files():
+    files = uos.listdir('/')
+    for file in files:
+        try:
+            size = uos.stat(file)[6]  # Tamaño del archivo
+            print(f"Archivo: {file}, Tamaño: {size / (1024):.2f} KB")
+        except Exception as e:
+            print(f"No se pudo obtener el tamaño de {file}: {e}")
 
 # Obtener información general del sistema
 def system_info():
@@ -171,8 +193,9 @@ def print_system_info_extended():
     print(f"Conteo de interrupciones: {info['interrupt']['interrupt_count']}")
     
     print("Sistema de archivos:")
-    print(f"Tamaño total del FS: {info['filesystem']['fs_total']} bytes")
-    print(f"Espacio libre en el FS: {info['filesystem']['fs_free']} bytes")
+    print(f"Tamaño total del FS: {info['filesystem']['fs_total'] / (1024 * 1024):.2f} MB")
+    print(f"Espacio libre en el FS: {info['filesystem']['fs_free'] / (1024 * 1024):.2f} MB")
+    print(f"Espacio usado en el FS: {info['filesystem']['fs_used'] / (1024 * 1024):.2f} MB")
     
     print("Información del chip:")
     print(f"Chip ID: {info['chip']['chip_id']}")
@@ -183,7 +206,13 @@ def print_system_info_extended():
     
     print("Uso de almacenamiento por directorio:")
     print(f"Número de archivos: {info['storage_usage']['number_of_files']}")
+    
+    print("Detalles de los archivos:")
+    list_files()
 
 # Ejecutar la impresión de información extendida del sistema
 print_system_info_extended()
 
+# Parpadeo del LED
+print("Parpadeando el LED...")
+blink_led(interval_ms=500, blink_count=5)
