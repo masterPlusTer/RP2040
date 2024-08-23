@@ -15,15 +15,19 @@ def blink_led(interval_ms, blink_count):
 
 # Obtener información de la memoria
 def memory_info():
+    free_memory = gc.mem_free()
+    total_memory = gc.mem_alloc() + gc.mem_free()
     return {
-        'free_memory': gc.mem_free(),
-        'total_memory': gc.mem_alloc() + gc.mem_free()
+        'free_memory_kb': free_memory / 1024,
+        'total_memory_kb': total_memory / 1024
     }
 
-# Obtener información de la memoria flash
+# Obtener información de la memoria flash en MB
 def flash_info():
+    flash_size_bytes = 2048 * 1024  # Tamaño típico de flash de 2MB
+    flash_size_mb = flash_size_bytes / (1024 * 1024)  # Convertir a MB
     return {
-        'flash_size': 2048 * 1024  # Tamaño típico de flash de 2MB
+        'flash_size_mb': flash_size_mb
     }
 
 # Obtener información del reloj
@@ -156,12 +160,12 @@ def print_system_info_extended():
     print(f"Versión de MicroPython: {info['version']}")
     print(f"Frecuencia del CPU: {info['frequency']} Hz")
     
-    print("Información de memoria:")
-    print(f"Memoria libre: {info['memory']['free_memory']} bytes")
-    print(f"Memoria total: {info['memory']['total_memory']} bytes")
+    print("Información de memoria RAM:")
+    print(f"Memoria libre: {info['memory']['free_memory_kb']:.2f} KB")
+    print(f"Memoria total: {info['memory']['total_memory_kb']:.2f} KB")
     
     print("Información de la memoria flash:")
-    print(f"Tamaño de flash: {info['flash']['flash_size']} bytes")
+    print(f"Tamaño de flash: {info['flash']['flash_size_mb']:.2f} MB")
     
     print("Información de temperatura:")
     print(f"Temperatura: {info['temperature']['temperature_celsius']:.2f} °C")
@@ -216,3 +220,4 @@ print_system_info_extended()
 # Parpadeo del LED
 print("Parpadeando el LED...")
 blink_led(interval_ms=500, blink_count=5)
+
